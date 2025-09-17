@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Registration Form</title>
+</head>
+<body>
+<form id="registrationForm">
+<input type="text" id="name" placeholder="Name"><br><br>
+<input type="email" id="email" placeholder="Email"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
+<button type="button" id="registerBtn">Register</button>
+</form>
+
+<p id="errorMsg" style="color:red;"></p>
+
+<script>
+document.getElementById("registerBtn").addEventListener("click", function() {
+let inputs = document.querySelectorAll("#registrationForm input");
+let errorMsg = document.getElementById("errorMsg");
+let emptyField = false;
+
+inputs.forEach(function(input) {
+if (input.value.trim() === "") {
+emptyField = true;
+}
+});
+
+if (emptyField) {
+errorMsg.textContent = "Please fill the fields";
+} else {
+errorMsg.textContent = "";
+alert("Form submitted successfully!");
+// You can submit the form here
+// document.getElementById("registrationForm").submit();
+}
+});
+</script>
+</body>
+</html>
