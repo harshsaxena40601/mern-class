@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Two Boxes — Copy / Cut / Paste (Simple)</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f6f7fb;color:#0b1220}
+    .wrap{width:90%;max-width:900px;background:#fff;padding:20px;border-radius:12px;box-shadow:0 8px 24px rgba(11,18,32,0.06)}
+    h1{font-size:18px;margin:0 0 12px}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+    textarea{width:100%;min-height:160px;padding:12px;border:1px solid #e3e7ef;border-radius:8px;font-size:14px;resize:vertical}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    button{padding:8px 12px;border-radius:8px;border:1px solid #d0d6e6;background:#f3f6fb;cursor:pointer;font-weight:600}
+    button:active{transform:translateY(1px)}
+    .hint{font-size:13px;color:#556070;margin-top:10px}
+    @media (max-width:640px){.cols{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Two boxes — Copy / Cut (left) → Paste (right)</h1>
+    <div class="cols">
+      <div>
+        <label for="leftBox" style="display:block;margin-bottom:6px;font-weight:600">Write here (Left)</label>
+        <textarea id="leftBox" placeholder="Type or paste some text here..."></textarea>
+        <div class="controls">
+          <button id="copyBtn">Copy</button>
+          <button id="cutBtn">Cut</button>
+        </div>
+      </div>
+
+      <div>
+        <label for="rightBox" style="display:block;margin-bottom:6px;font-weight:600">Paste here (Right)</label>
+        <textarea id="rightBox" placeholder="Use the Paste button to paste text from the clipboard"></textarea>
+        <div class="controls">
+          <button id="pasteBtn">Paste</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">Notes: Copy/Cut will copy the left box content to the system clipboard. Paste reads from the clipboard and inserts into the right box. On some browsers, clipboard permissions are required for Paste.</p>
+  </div>
+
+  <script>
+    const left = document.getElementById('leftBox');
+    const right = document.getElementById('rightBox');
+    const copyBtn = document.getElementById('copyBtn');
+    const cutBtn = document.getElementById('cutBtn');
+    const pasteBtn = document.getElementById('pasteBtn');
+
+    async function writeToClipboard(text){
+      try{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text; document.body.appendChild(ta);
+          ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        return true;
+      }catch(e){
+        console.error('Copy failed', e);
+        return false;
+      }
+    }
+
+    async function readFromClipboard(){
+      try{
+        if(navigator.clipboard && navigator.clipboard.readText){
+          return await navigator.clipboard.readText();
+        } else {
+          // No reliable fallback for readText in older browsers
+          throw new Error('Clipboard API not available');
+        }
+      }catch(e){
+        console.error('Paste failed', e);
+        throw e;
+      }
+    }
+
+    copyBtn.addEventListener('click', async ()=>{
+      const text = left.value;
+      if(!text){
+        alert('Left box is empty. Type something to copy.');
+        return;
+      }
+      const ok = await writeToClipboard(text);
+      if(ok) copyBtn.textContent = 'Copied ✓';
+      setTimeout(()=>copyBtn.textContent = 'Copy',1200);
+    });
+
+    cutBtn.addEventListener('click', async ()=>{
+      const text = left.value;
+      if(!text){
+        alert('Left box is empty. Nothing to cut.');
+        return;
+      }
+      const ok = await writeToClipboard(text);
+      if(ok){
+        left.value = '';
+        cutBtn.textContent = 'Cut ✓';
+        setTimeout(()=>cutBtn.textContent = 'Cut',1200);
+      }
+    });
+
+    pasteBtn.addEventListener('click', async ()=>{
+      try{
+        const clipboardText = await readFromClipboard();
+        right.value = clipboardText;
+        pasteBtn.textContent = 'Pasted ✓';
+        setTimeout(()=>pasteBtn.textContent = 'Paste',1200);
+      }catch(e){
+        alert('Unable to read clipboard. Your browser may require a secure (https) context or permission.');
+      }
+    });
+  </script>
+</body>
+</html>
